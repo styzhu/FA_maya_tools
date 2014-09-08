@@ -18,6 +18,8 @@ TO-DO in v1.1.0
 3. rename system
 4. change the GUI into a class
 
+FIXED:
+1. add rotation -- Sept 8
 
 Created on Sep 5, 2014
 
@@ -48,12 +50,18 @@ def mirrorObjAlong(obj, axis):
     if axis == 'x':
         mirObj.translateX.set(-obj.translateX.get())
         mirObj.scaleX.set(-obj.scaleX.get())
+        mirObj.rotationY.set(-obj.rotationY.get())
+        mirObj.rotationZ.set(-obj.rotationZ.get())
     if axis == 'y':
         mirObj.translateY.set(-obj.translateY.get())
         mirObj.scaleY.set(-obj.scaleY.get())
+        mirObj.rotationX.set(-obj.rotationX.get())
+        mirObj.rotationZ.set(-obj.rotationZ.get())
     if axis == 'z':
         mirObj.translateZ.set(-obj.translateZ.get())
         mirObj.scaleZ.set(-obj.scaleZ.get())
+        mirObj.rotationX.set(-obj.rotationX.get())
+        mirObj.rotationY.set(-obj.rotationY.get())
         
         
         
