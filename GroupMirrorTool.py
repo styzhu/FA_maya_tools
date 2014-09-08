@@ -50,18 +50,18 @@ def mirrorObjAlong(obj, axis):
     if axis == 'x':
         mirObj.translateX.set(-obj.translateX.get())
         mirObj.scaleX.set(-obj.scaleX.get())
-        mirObj.rotationY.set(-obj.rotationY.get())
-        mirObj.rotationZ.set(-obj.rotationZ.get())
+        mirObj.rotateY.set(-obj.rotateY.get())
+        mirObj.rotateZ.set(-obj.rotateZ.get())    
     if axis == 'y':
         mirObj.translateY.set(-obj.translateY.get())
         mirObj.scaleY.set(-obj.scaleY.get())
-        mirObj.rotationX.set(-obj.rotationX.get())
-        mirObj.rotationZ.set(-obj.rotationZ.get())
+        mirObj.rotateX.set(-obj.rotateX.get())
+        mirObj.rotateZ.set(-obj.rotateZ.get())
     if axis == 'z':
         mirObj.translateZ.set(-obj.translateZ.get())
         mirObj.scaleZ.set(-obj.scaleZ.get())
-        mirObj.rotationX.set(-obj.rotationX.get())
-        mirObj.rotationY.set(-obj.rotationY.get())
+        mirObj.rotateX.set(-obj.rotateX.get())
+        mirObj.rotateY.set(-obj.rotateY.get())
         
         
         
