@@ -1,5 +1,5 @@
 '''
-Group Mirror Tool v1.0.0
+Group Mirror Tool v1.1.0
 -- mirror group objects by xy, yz, xz --
 steps:
 1. select the objects to be mirrored
@@ -20,6 +20,7 @@ TO-DO in v1.1.0
 
 FIXED:
 1. add rotation -- Sept 8
+2. change the way to mirror, so that changing the pivot pos won't break it
 
 Created on Sep 5, 2014
 
@@ -45,23 +46,23 @@ def showNiceDegree(input):
     
 
 #magic
-def mirrorObjAlong(obj, axis):
-    mirObj = pm.duplicate(obj)[0]
+def mirrorObjAlong(selection_list, axis):  
+    ori_selected = selection_list
+    ori_grp = pm.group(ori_selected, name='group_GMT_FA', world=True)
+    mir_selected = pm.duplicate(ori_selected)
+    mir_grp = pm.group(mir_selected, name='group_GMT_FA_mir', world=True)
+    pm.xform(p=True, pivots=(0, 0, 0))
     if axis == 'x':
-        mirObj.translateX.set(-obj.translateX.get())
-        mirObj.scaleX.set(-obj.scaleX.get())
-        mirObj.rotateY.set(-obj.rotateY.get())
-        mirObj.rotateZ.set(-obj.rotateZ.get())    
+        mir_grp.scaleX.set(-1)
     if axis == 'y':
-        mirObj.translateY.set(-obj.translateY.get())
-        mirObj.scaleY.set(-obj.scaleY.get())
-        mirObj.rotateX.set(-obj.rotateX.get())
-        mirObj.rotateZ.set(-obj.rotateZ.get())
+        mir_grp.scaleY.set(-1)
     if axis == 'z':
-        mirObj.translateZ.set(-obj.translateZ.get())
-        mirObj.scaleZ.set(-obj.scaleZ.get())
-        mirObj.rotateX.set(-obj.rotateX.get())
-        mirObj.rotateY.set(-obj.rotateY.get())
+        mir_grp.scaleZ.set(-1)
+        
+    pm.parent(ori_selected, world = True)
+    pm.delete('group_GMT_FA')
+    pm.parent(mir_selected, world = True)
+    pm.delete('group_GMT_FA_mir')
         
         
         
@@ -78,10 +79,8 @@ def runGroupMirror(*args):
     print "Selected: %s"%selection_list
     
     
-    #iterate through the selected ones and make mirror
-    for item in selection_list:
-        mirrorObjAlong(item, getAxis)
-        print "mirroring %s along axis %s"%(item, getAxis)
+    mirrorObjAlong(selection_list, getAxis)
+    print "mirroring %s along axis %s"%(selection_list, getAxis)
         
         
 def groupMirrorAndClose(*args):
