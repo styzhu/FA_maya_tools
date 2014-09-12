@@ -12,7 +12,7 @@ MAYA-16289
 http://download.autodesk.com/us/support/files/maya_2015_service_pack_2/Maya2015_SP2_Readme_enu.html
 negative scale make it looks black
 
-TO-DO in v1.1.0
+TO-DO in v1.2.0
 1. 'freeze' the new object
 2. set the same hierarchy
 3. rename system
@@ -20,7 +20,7 @@ TO-DO in v1.1.0
 
 FIXED:
 1. add rotation -- Sept 8
-2. change the way to mirror, so that changing the pivot pos won't break it
+2. change the way to mirror, so that changing the pivot pos won't break it -- Sept 11
 
 Created on Sep 5, 2014
 
@@ -48,8 +48,20 @@ def showNiceDegree(input):
 #magic
 def mirrorObjAlong(selection_list, axis):  
     ori_selected = selection_list
-    ori_grp = pm.group(ori_selected, name='group_GMT_FA', world=True)
-    mir_selected = pm.duplicate(ori_selected)
+    mir_selected_copy = pm.duplicate(ori_selected)
+    mir_selected = list(mir_selected_copy)
+    #fix bugs which caused by maya's group command removes parent hierachy
+    print mir_selected  
+    for obj in mir_selected_copy:
+        print obj
+        obj_parent = obj.listRelatives(parent=True)
+        if obj_parent:
+            if obj_parent[0] in mir_selected_copy:
+                print mir_selected
+                mir_selected.remove(obj)
+                print obj
+                print mir_selected 
+                print '---------------'           
     mir_grp = pm.group(mir_selected, name='group_GMT_FA_mir', world=True)
     pm.xform(p=True, pivots=(0, 0, 0))
     if axis == 'x':
@@ -59,13 +71,11 @@ def mirrorObjAlong(selection_list, axis):
     if axis == 'z':
         mir_grp.scaleZ.set(-1)
         
-    pm.parent(ori_selected, world = True)
-    pm.delete('group_GMT_FA')
+
     pm.parent(mir_selected, world = True)
     pm.delete('group_GMT_FA_mir')
         
-        
-        
+            
 ###########################################################
 def runGroupMirror(*args):
     #get radio button selection
@@ -116,20 +126,3 @@ cmds.button(label='Apply and Close', command=groupMirrorAndClose)
 cmds.button(label='Apply', command=runGroupMirror)
 cmds.button(label='Close', command=close)
 cmds.showWindow(myWin)
-        
-
-    
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
