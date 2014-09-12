@@ -1,5 +1,5 @@
 '''
-Group Mirror Tool v1.1.0
+Group Mirror Tool v1.3.0
 -- mirror group objects by xy, yz, xz --
 steps:
 1. select the objects to be mirrored
@@ -12,7 +12,7 @@ MAYA-16289
 http://download.autodesk.com/us/support/files/maya_2015_service_pack_2/Maya2015_SP2_Readme_enu.html
 negative scale make it looks black
 
-TO-DO in v1.2.0
+TO-DO in v1.4.0
 1. 'freeze' the new object
 2. set the same hierarchy
 3. rename system
@@ -21,6 +21,7 @@ TO-DO in v1.2.0
 FIXED:
 1. add rotation -- Sept 8
 2. change the way to mirror, so that changing the pivot pos won't break it -- Sept 11
+3. fixed mirroring parents oobject problem
 
 Created on Sep 5, 2014
 
