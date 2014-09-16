@@ -67,18 +67,8 @@ def mirrorObjAlong(selection_list, axis):
     mir_selected = list(mir_selected_copy)
     #fix bugs which caused by maya's group command removes parent hierachy
     print mir_selected  
-    killChildren(mir_selected, mir_selected_copy)
-    for obj in mir_selected_copy:
-        print obj
-        obj_parent = obj.listRelatives(parent=True)
-        if obj_parent:
-            if obj_parent[0] in mir_selected_copy:
-                print mir_selected
-                mir_selected.remove(obj)
-                print obj
-                print mir_selected 
-                print '---------------'           
-    mir_grp = pm.group(mir_selected, name='group_GMT_FA_mir', world=True)
+    killChildren(mir_selected, mir_selected_copy)          
+    mir_grp = pm.group(mir_selected, name='group_GMT_FA_mir')
     pm.xform(p=True, pivots=(0, 0, 0))
     if axis == 'x':
         mir_grp.scaleX.set(-1)
