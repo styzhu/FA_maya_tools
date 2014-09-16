@@ -46,13 +46,28 @@ def showNiceDegree(input):
 """   
     
 
+def killChildren(list, list_copy):
+    for obj in list_copy:
+        print obj
+        obj_parent = obj.listRelatives(parent=True)
+        if obj_parent:
+            if obj_parent[0] in list_copy:
+                print list
+                list.remove(obj)
+                print obj
+                print list 
+                print '---------------' 
+                
+                
 #magic
 def mirrorObjAlong(selection_list, axis):  
-    ori_selected = selection_list
+    ori_selected = list(selection_list)
+    killChildren(ori_selected, selection_list)
     mir_selected_copy = pm.duplicate(ori_selected)
     mir_selected = list(mir_selected_copy)
     #fix bugs which caused by maya's group command removes parent hierachy
     print mir_selected  
+    killChildren(mir_selected, mir_selected_copy)
     for obj in mir_selected_copy:
         print obj
         obj_parent = obj.listRelatives(parent=True)
@@ -74,7 +89,7 @@ def mirrorObjAlong(selection_list, axis):
         
 
     pm.parent(mir_selected, world = True)
-    pm.delete('group_GMT_FA_mir')
+    pm.delete('group_GMT_FA_mir') 
         
             
 ###########################################################
