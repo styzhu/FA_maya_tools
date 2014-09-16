@@ -78,7 +78,10 @@ def mirrorObjAlong(selection_list, axis):
         mir_grp.scaleZ.set(-1)
         
 
-    pm.parent(mir_selected, world = True)
+    if(mir_grp.listRelatives(parent=True)):
+        pm.parent(mir_selected, mir_grp.listRelatives(parent=True)[0])
+    else:
+        pm.parent(mir_selected, world = True)
     pm.delete('group_GMT_FA_mir') 
         
             
