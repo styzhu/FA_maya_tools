@@ -22,6 +22,7 @@ FIXED:
 1. add rotation -- Sept 8
 2. change the way to mirror, so that changing the pivot pos won't break it -- Sept 11
 3. fixed mirroring parents oobject problem
+4. duplicate the child item which as a object parent correctly -- Oct 1
 
 Created on Sep 5, 2014
 
@@ -30,20 +31,7 @@ Created on Sep 5, 2014
 
 
 import pymel.core as pm
-import maya.cmds as cmds
-
-"""unused
-#groom the numbers
-def showNiceDegree(input):
-    if input < 360 and input >= 0:
-        return input;
-    elif input >= 360:
-        input -= 360
-        return showNiceDegree(input)
-    elif input < 0:
-        input += 360
-        return showNiceDegree(input)
-"""   
+import maya.cmds as cmds 
     
 
 def killChildren(list, list_copy):
@@ -59,17 +47,17 @@ def killChildren(list, list_copy):
                 print '---------------' 
                 
                 
-#magic
+# magic
 def mirrorObjAlong(selection_list, axis):  
     ori_selected = list(selection_list)
     killChildren(ori_selected, selection_list)
     mir_selected_copy = pm.duplicate(ori_selected)
     mir_selected = list(mir_selected_copy)
-    #fix bugs which caused by maya's group command removes parent hierachy
+    # fix bugs which caused by maya's group command removes parent hierachy
     print mir_selected  
     killChildren(mir_selected, mir_selected_copy)          
     mir_grp = pm.group(mir_selected, name='group_GMT_FA_mir')
-    pm.xform(p=True, pivots=(0, 0, 0))
+    pm.xform(mir_grp, p=True, pivots=(0, 0, 0), worldSpace=True)
     if axis == 'x':
         mir_grp.scaleX.set(-1)
     if axis == 'y':
@@ -87,11 +75,11 @@ def mirrorObjAlong(selection_list, axis):
             
 ###########################################################
 def runGroupMirror(*args):
-    #get radio button selection
+    # get radio button selection
     getAxis = cmds.radioCollection("axis", q=True, sl=True)
-    #show me all the selected objects in a list
+    # show me all the selected objects in a list
     selection_list = pm.ls(selection = True)
-    #check list empty
+    # check list empty
     if not selection_list:
         pm.confirmDialog(title='Error', button=['OK'], m='Please select the original objects!')
         return
@@ -118,12 +106,11 @@ def goDocLink(*args):
     cmds.launch(web='https://docs.google.com/document/d/19BsWSH0c_mM2PvzfKd485EMTldCv5SkP7BA2OEEce4E/edit?usp=sharing')
 
 
-#GUI
+# GUI
 myWin = cmds.window(title="Group Mirror Tool", menuBar=True)
 cmds.menu(label='Help')
 cmds.menuItem(label='Design Doc', command=goDocLink)
 cmds.columnLayout( adjustableColumn=True )
-#cmds.radioButtonGrp( label='Along Axis: ', labelArray3=['X', 'Y', 'Z'],numberOfRadioButtons=3, vertical=True )
 cmds.frameLayout( label='Mirror Along axis: ' )
 cmds.radioCollection('axis')
 cmds.radioButton('x', label='X', sl=True )
