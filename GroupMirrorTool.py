@@ -47,11 +47,13 @@ def killChildren(list, list_copy):
                 print '---------------' 
                 
                 
-# magic
-def mirrorObjAlong(selection_list, axis):  
+def mirrorObjAlong(selection_list, axis, isPreview):  
     ori_selected = list(selection_list)
     killChildren(ori_selected, selection_list)
-    mir_selected_copy = pm.duplicate(ori_selected)
+    if isPreview:
+        mir_selected_copy = pm.instance(ori_selected)
+    else:
+        mir_selected_copy = pm.duplicate(ori_selected)
     mir_selected = list(mir_selected_copy)
     # fix bugs which caused by maya's group command removes parent hierachy
     print mir_selected  
@@ -86,8 +88,25 @@ def runGroupMirror(*args):
     print "Selected: %s"%selection_list
     
     
-    mirrorObjAlong(selection_list, getAxis)
+    mirrorObjAlong(selection_list, getAxis, False)
     print "mirroring %s along axis %s"%(selection_list, getAxis)
+        
+        
+def runPreview(*args):
+    # get radio button selection
+    getAxis = cmds.radioCollection("axis", q=True, sl=True)
+    # show me all the selected objects in a list
+    selection_list = pm.ls(selection = True)
+    # check list empty
+    if not selection_list:
+        pm.confirmDialog(title='Error', button=['OK'], m='Please select the original objects!')
+        return
+    print "Selected: %s"%selection_list
+    
+    
+    mirrorObjAlong(selection_list, getAxis, True)
+    print "instancing %s along axis %s"%(selection_list, getAxis)
+    pm.createDisplayLayer( name='MirrorPreviewLayer' )
         
         
 def groupMirrorAndClose(*args):
@@ -120,5 +139,7 @@ cmds.radioButton('z', label='Z' )
 
 cmds.button(label='Apply and Close', command=groupMirrorAndClose)
 cmds.button(label='Apply', command=runGroupMirror)
+cmds.button(label='Preview (MakeInstance)', command=runPreview)
+#cmds.button(label='Delete Preview', command=deletePreview)
 cmds.button(label='Close', command=close)
 cmds.showWindow(myWin)
