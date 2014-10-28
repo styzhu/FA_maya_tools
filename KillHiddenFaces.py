@@ -4,7 +4,7 @@ import pymel.core as pm
 hiddenFaces = []
 for j in range(len(pm.selected())):
     for i in pm.selected()[j]:
-        if i.getArea() < 1.0e-3:
+        if i.getArea() < 1.0e-4:
             hiddenFaces.append(i)
 print hiddenFaces
     
