@@ -1,0 +1,6 @@
+wingdebugpw
+*.pyc
+test.py
+test_1.py
+debugmaya.py
+wingdbstub.py
