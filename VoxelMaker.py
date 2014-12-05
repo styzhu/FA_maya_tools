@@ -2,7 +2,7 @@ import pymel.core as pm
 import math as math
 import maya.cmds as cmds
 
-selectedMeshList = list(pm.selected())
+g_selectedMeshList = list(pm.selected())
 
 """ math helpers """
 def getLength(i_vector):
@@ -53,8 +53,6 @@ def getPairGCD(a, b):
 """ helper function """
 def NormalizeMesh(mesh):
     pm.makeIdentity(mesh, apply = True, translate=True, rotate=True)
-    # make the scale as 1, 1, 1
-    print mesh.getMatrix()
     
     meshBBox = mesh.getBoundingBox()
     edgeList = []
@@ -85,22 +83,26 @@ class VoxelMaker:
     _voxelsPosList = []
     _voxelsList = []
     _oriMdl = pm.nt.Transform()
-    print 5
     
     def __init__(self, i_step):
-        _oriMdl = pm.nt.Transform()
         print "XXXXX"+str(type(self._oriMdl))
-        self._oriMdl = pm.duplicate(selectedMeshList[0])[0]
+        self._oriMdl = pm.duplicate(g_selectedMeshList[0])[0]
         print "XXXXX"+str(type(self._oriMdl))
-        pm.makeIdentity(apply = True, scale = True)
+        pm.makeIdentity(self._oriMdl, apply = True, scale = True)
         self._oriMdl.setMatrix((1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0))
-        BBox = self._oriMdl.getBoundingBox()  
+        BBox = self._oriMdl.getBoundingBox() 
         self.buildVoxelList(i_step, BBox.max(), BBox.min())
         
         
     def __del__(self):
         pass
         #pm.delete(self._oriMdl)
+        
+        
+    def getBBoxVol(self):
+        BBox = self._oriMdl.getBoundingBox()
+        return BBox.width()*BBox.height()*BBox.depth()
+        
         
     def getSize(self, *args):
         return self._voxelSize
@@ -109,7 +111,7 @@ class VoxelMaker:
     def createShape(self, i_isGroup, i_mesh):
         distanceLimit = math.sqrt(self._voxelSize*self._voxelSize*3)
         for p in self._voxelsPosList:
-            print self._voxelsPosList
+            # print self._voxelsPosList
             r = self._oriMdl.getClosestPointAndNormal((p[0], p[1], p[2]))
             closestPoint = r[0] + self._oriMdl.getTranslation()
             
@@ -129,7 +131,7 @@ class VoxelMaker:
                 mesh = pm.duplicate(i_mesh, name='Voxel1')
                 pm.move(p[0], p[1], p[2], mesh, ws=True)
                 self._voxelsList.append(mesh)
-                print "Create Voxel @ "+str(p[0])+","+str(p[1])+","+str(p[2])+" "+str(mesh)
+                # print "Create Voxel @ "+str(p[0])+","+str(p[1])+","+str(p[2])+" "+str(mesh)
                 
         if i_isGroup ==True:
             pm.polyUnite(self._voxelsList, name='V1')
@@ -183,7 +185,7 @@ class UI:
     #UI for this tool
     def __init__(self):
         winWidth = 400
-        winHeight = 330
+        winHeight = 360
         winName = "voxel_maker_window"
         winTitle = "Voxel Maker"
         rightOffset = 10
@@ -234,7 +236,7 @@ class UI:
         importField = pm.textFieldButtonGrp( label='Path', text=self._importFilePath, buttonLabel='Find',
                                              buttonCommand=self.getImportFilePath, parent=formLayout_custom_1, 
                                              enable=self._customVoxelSelected ) #TODO
-        insceneRButton = pm.radioButton(label='In Scene', parent=formLayout_custom_1, enable=self._customVoxelSelected,
+        insceneRButton = pm.radioButton(label='In Scene: Select the shape object first, the sample object secondly', parent=formLayout_custom_1, enable=self._customVoxelSelected,
                                         changeCommand=self.changeImportSelected, sl=not self._importSelected)
         
         formLayout_custom.attachForm(cusvRButton, 'top', topOffset)
@@ -272,14 +274,20 @@ class UI:
         formLayout_seperate.attachForm(nSepRButton, 'top', topOffset)
         
         # apply/close buttons
-        acButton = pm.button(label='Apply and Close', command=pm.Callback(self.apply, voxelType, self._importFilePath, False), parent=colLayout)
-        aButton = pm.button(label='Apply', command=self.goDocLink, parent=colLayout)
+        acButton = pm.button(label='Apply and Close', command=pm.Callback(self.apply, voxelType, self._importFilePath, True), parent=colLayout)
+        aButton = pm.button(label='Apply', command=pm.Callback(self.apply, voxelType, self._importFilePath, False), parent=colLayout)
+        rButton = pm.button(label='Refresh', command=self.refresh, parent=colLayout)        
         cButton = pm.button(label='Close', command=self.close, parent=colLayout)
     
         
         # show window
         self._mainWindow.show()
         self._mainWindow.setWidthHeight((winWidth, winHeight))     
+        
+        
+    def refresh(self, *args):
+        g_selectedMeshList = list(pm.selected())
+        self.__init__()
         
         
     def changeSeperated(self, *args):
@@ -328,10 +336,17 @@ class UI:
         i_step = pm.intSliderGrp('density', q=True, value=True)
         vm = VoxelMaker(i_step)
         voxelSize = vm.getSize()
+        # this is aimed to calculate the time will be costed
+        detailLvl = vm.getBBoxVol()/(voxelSize**3)
+        print "ZZZZ"+str(voxelSize)+" "+str(detailLvl)
         if i_voxelType.getSelect() == 'custom_voxel':
-            print pm.importFile(i_meshPath, returnNewNodes=True)
-            transform = pm.importFile(i_meshPath, returnNewNodes=True)[-2]
-            NormalizeMesh(transform)
+            if self._importSelected:
+                print pm.importFile(i_meshPath, returnNewNodes=True)
+                transform = pm.importFile(i_meshPath, returnNewNodes=True)[-2]
+                NormalizeMesh(transform)
+            else:
+                transform = g_selectedMeshList[1]
+                NormalizeMesh(transform)
         else:
             transform = pm.polyCube(w=voxelSize, h=voxelSize, d=voxelSize)
         if self._seperated == True:
@@ -343,6 +358,8 @@ class UI:
         
         if i_isClose == True:
             self.close()
+        else:
+            self.__init__()
     
     
     def close(self, *args):
@@ -350,15 +367,13 @@ class UI:
     
     
 def run():
-    print type(selectedMeshList)
-    print selectedMeshList
-    if len(selectedMeshList) == 0:
+    if len(g_selectedMeshList) == 0:
         pm.confirmDialog(title='Error', button=['OK'], defaultButton='OK', 
                          m="Please select the original model!")
         return
-    if len(selectedMeshList) > 2:
+    if len(g_selectedMeshList) > 2:
         pm.confirmDialog(title='Error', button=['OK'], defaultButton='OK', 
-                         m="more than 2 objects are selected: "+str(selectedMeshList))
+                         m="more than 2 objects are selected: "+str(g_selectedMeshList))
         return        
     myUI = UI()
     
