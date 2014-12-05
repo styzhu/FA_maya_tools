@@ -54,7 +54,7 @@ def getPairGCD(a, b):
 def NormalizeMesh(mesh):
     pm.makeIdentity(mesh, apply = True, translate=True, rotate=True)
     # make the scale as 1, 1, 1
-    mesh.setMatrix((1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0))
+    print mesh.getMatrix()
     
     meshBBox = mesh.getBoundingBox()
     edgeList = []
@@ -71,7 +71,11 @@ def NormalizeMesh(mesh):
             continue
     
     if maxLength > 1:
-        pm.scale(mesh, meshBBox.width()/(maxLength*maxLength), meshBBox.height()/(maxLength*maxLength), meshBBox.width()/(maxLength*maxLength))
+        pm.scale(mesh, mesh.getScale()[0]/(maxLength), mesh.getScale()[1]/(maxLength), mesh.getScale()[2]/(maxLength))
+    
+    pm.makeIdentity(mesh, apply = True, translate=True, rotate=True, scale=True)
+
+
 
 
 
@@ -173,11 +177,13 @@ class UI:
     _importFilePath = ''
     _mainWindow = None
     _customVoxelSelected = False
+    _importSelected = False
+    _seperated = True
 
     #UI for this tool
     def __init__(self):
         winWidth = 400
-        winHeight = 300
+        winHeight = 330
         winName = "voxel_maker_window"
         winTitle = "Voxel Maker"
         rightOffset = 10
@@ -224,11 +230,12 @@ class UI:
         cusvRButton = pm.radioButton('custom_voxel', label='Custom Voxel', parent=formLayout_custom,
                                      changeCommand=self.changeCustomVoxelSelected, sl = self._customVoxelSelected)
         pm.radioCollection()
-        importRButton = pm.radioButton(label='Import', parent=formLayout_custom_1, enable=self._customVoxelSelected)
+        importRButton = pm.radioButton(label='Import', parent=formLayout_custom_1, enable=self._customVoxelSelected, sl=self._importSelected)
         importField = pm.textFieldButtonGrp( label='Path', text=self._importFilePath, buttonLabel='Find',
                                              buttonCommand=self.getImportFilePath, parent=formLayout_custom_1, 
                                              enable=self._customVoxelSelected ) #TODO
-        insceneRButton = pm.radioButton(label='In Scene', parent=formLayout_custom_1, enable=self._customVoxelSelected)
+        insceneRButton = pm.radioButton(label='In Scene', parent=formLayout_custom_1, enable=self._customVoxelSelected,
+                                        changeCommand=self.changeImportSelected, sl=not self._importSelected)
         
         formLayout_custom.attachForm(cusvRButton, 'top', topOffset)
         formLayout_custom.attachForm(cusvRButton, 'left', leftOffset)
@@ -250,6 +257,19 @@ class UI:
     
         formLayout_density.attachForm(densityIntSlider, 'top', topOffset)
         formLayout_density.attachForm(densityIntSlider, 'left', leftOffset-100)
+
+        # frame 4
+        frameLayout_seperate = pm.frameLayout(label='Is Result Seperated', borderStyle='etchedOut', parent=colLayout)
+        formLayout_seperate = pm.formLayout(parent=frameLayout_seperate)
+        
+        isSeperate = pm.radioCollection('IsSeperate')
+        ySepRButton = pm.radioButton('Yes', label='Yes', parent=formLayout_seperate, changeCommand=self.changeSeperated, sl=self._seperated)
+        nSepRButton = pm.radioButton('No', label='No', parent=formLayout_seperate, sl=not self._seperated)
+
+        formLayout_seperate.attachForm(ySepRButton, 'top', topOffset)
+        formLayout_seperate.attachForm(ySepRButton, 'left', leftOffset)
+        formLayout_seperate.attachControl(nSepRButton, 'left', leftOffset, ySepRButton)
+        formLayout_seperate.attachForm(nSepRButton, 'top', topOffset)
         
         # apply/close buttons
         acButton = pm.button(label='Apply and Close', command=pm.Callback(self.apply, voxelType, self._importFilePath, False), parent=colLayout)
@@ -261,8 +281,23 @@ class UI:
         self._mainWindow.show()
         self._mainWindow.setWidthHeight((winWidth, winHeight))     
         
+        
+    def changeSeperated(self, *args):
+        self._seperated = not self._seperated
+        self.__init__()
+        
+    def changeImportSelected(self, *args):
+        self._importSelected = not self._importSelected
+        self.__init__()    
+        
+        
     def changeCustomVoxelSelected(self, *args):
         self._customVoxelSelected = not self._customVoxelSelected
+        self.__init__()
+        
+        
+    def changeSelected(self, target):
+        target = not target
         self.__init__()
         
     def selectCustomVoxel(self, i_isSelected):
@@ -298,9 +333,11 @@ class UI:
             transform = pm.importFile(i_meshPath, returnNewNodes=True)[-2]
             NormalizeMesh(transform)
         else:
-            mesh = pm.polyCube(w=voxelSize, h=voxelSize, d=voxelSize)
-        #vm.createShape(i_isGroup, mesh)
-        vm.createShape(True, transform)
+            transform = pm.polyCube(w=voxelSize, h=voxelSize, d=voxelSize)
+        if self._seperated == True:
+            vm.createShape(False, transform)
+        else:
+            vm.createShape(True, transform)
         
         pm.delete(transform)
         
@@ -309,8 +346,7 @@ class UI:
     
     
     def close(self, *args):
-        pm.deleteUI(self._mainWindow, window=True)    
-    
+        pm.deleteUI(self._mainWindow, window=True)
     
     
 def run():
