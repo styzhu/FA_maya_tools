@@ -128,7 +128,8 @@ class VoxelMaker:
             
             # doc product > 0 means two vectors angle is from 0~90
             if dp < 0:
-                mesh = pm.duplicate(i_mesh, name='Voxel1')
+                # i_mesh: nt.Transform(u'pCube1'), nt.PolyCube(u'polyCube1')
+                mesh = pm.duplicate(i_mesh[0], name='Voxel1')
                 pm.move(p[0], p[1], p[2], mesh, ws=True)
                 self._voxelsList.append(mesh)
                 # print "Create Voxel @ "+str(p[0])+","+str(p[1])+","+str(p[2])+" "+str(mesh)
