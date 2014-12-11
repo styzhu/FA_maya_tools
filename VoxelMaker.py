@@ -85,10 +85,8 @@ class VoxelMaker:
     _oriMdl = pm.nt.Transform()
     
     def __init__(self, i_step):
-        print "XXXXX"+str(type(self._oriMdl))
         self._oriMdl = pm.duplicate(g_selectedMeshList[0])[0]
-        print "XXXXX"+str(type(self._oriMdl))
-        pm.makeIdentity(self._oriMdl, apply = True, scale = True)
+        pm.makeIdentity(self._oriMdl, apply = True, scale = True, rotate=True)
         self._oriMdl.setMatrix((1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0))
         BBox = self._oriMdl.getBoundingBox() 
         self.buildVoxelList(i_step, BBox.max(), BBox.min())
@@ -128,14 +126,24 @@ class VoxelMaker:
             
             # doc product > 0 means two vectors angle is from 0~90
             if dp < 0:
+                # TODO
                 # i_mesh: nt.Transform(u'pCube1'), nt.PolyCube(u'polyCube1')
-                mesh = pm.duplicate(i_mesh[0], name='Voxel1')
+                #print type(i_mesh)
+                #print i_mesh
+                #cube
+                #if type(i_mesh) is 'list':
+                    #mesh = pm.duplicate(i_mesh[0], name='Voxel1')
+                #else:
+                #custom
+                    #mesh = pm.duplicate(i_mesh, name='Voxel1')
+                mesh = pm.duplicate(i_mesh, name='Voxel1')
                 pm.move(p[0], p[1], p[2], mesh, ws=True)
                 self._voxelsList.append(mesh)
                 # print "Create Voxel @ "+str(p[0])+","+str(p[1])+","+str(p[2])+" "+str(mesh)
                 
         if i_isGroup ==True:
-            pm.polyUnite(self._voxelsList, name='V1')
+            if len(self._voxelsList)>1:
+                pm.polyUnite(self._voxelsList, name='V1')
             pm.polyMergeVertex(distance=0.0)
             pm.delete(pm.polyInfo(laminaFaces=True))
             
@@ -181,7 +189,8 @@ class UI:
     _mainWindow = None
     _customVoxelSelected = False
     _importSelected = False
-    _seperated = True
+    _seperated = False
+    _density = 1
 
     #UI for this tool
     def __init__(self):
@@ -237,7 +246,7 @@ class UI:
         importField = pm.textFieldButtonGrp( label='Path', text=self._importFilePath, buttonLabel='Find',
                                              buttonCommand=self.getImportFilePath, parent=formLayout_custom_1, 
                                              enable=self._customVoxelSelected ) #TODO
-        insceneRButton = pm.radioButton(label='In Scene: Select the shape object first, the sample object secondly', parent=formLayout_custom_1, enable=self._customVoxelSelected,
+        insceneRButton = pm.radioButton(label='In Scene: Select the profile first, the sample object secondly', parent=formLayout_custom_1, enable=self._customVoxelSelected,
                                         changeCommand=self.changeImportSelected, sl=not self._importSelected)
         
         formLayout_custom.attachForm(cusvRButton, 'top', topOffset)
@@ -256,7 +265,8 @@ class UI:
         frameLayout_density = pm.frameLayout(label='Density Settings', borderStyle='etchedOut', parent=colLayout)
         formLayout_density = pm.formLayout(parent=frameLayout_density)
         
-        densityIntSlider = pm.intSliderGrp('density', field=True, label='Density', minValue=1, maxValue=20, fieldMinValue=1, fieldMaxValue=100, value=0, sliderStep=1)
+        densityIntSlider = pm.intSliderGrp('density', field=True, label='Density', minValue=1, maxValue=20,
+                                           fieldMinValue=1, fieldMaxValue=100, value=self._density, sliderStep=1, changeCommand=self.changeDensity)
     
         formLayout_density.attachForm(densityIntSlider, 'top', topOffset)
         formLayout_density.attachForm(densityIntSlider, 'left', leftOffset-100)
@@ -295,6 +305,11 @@ class UI:
         self._seperated = not self._seperated
         self.__init__()
         
+        
+    def changeDensity(self, *args):
+        self._density = pm.intSliderGrp('density', q=True, value=True)
+        
+        
     def changeImportSelected(self, *args):
         self._importSelected = not self._importSelected
         self.__init__()    
@@ -330,16 +345,33 @@ class UI:
     
     def goDocLink(self, *args):
         """go to document/help"""
-        pm.launch(web='https://docs.google.com/document/d/19BsWSH0c_mM2PvzfKd485EMTldCv5SkP7BA2OEEce4E/edit?usp=sharing')
+        pm.launch(web='https://docs.google.com/document/d/1rGMKBQ3gdmisncroBUUkPibmySuQh--DR_MUgqCfOlY/edit?usp=sharing')
     
     
     def apply(self, i_voxelType, i_meshPath, i_isClose, *args):
-        i_step = pm.intSliderGrp('density', q=True, value=True)
+        i_step = self._density
         vm = VoxelMaker(i_step)
         voxelSize = vm.getSize()
         # this is aimed to calculate the time will be costed
         detailLvl = vm.getBBoxVol()/(voxelSize**3)
-        print "ZZZZ"+str(voxelSize)+" "+str(detailLvl)
+        print "Voxel Size: "+str(voxelSize)+" Current Detail Level: "+str(detailLvl)
+        
+        if detailLvl > 10000:
+            warnWin = pm.confirmDialog(title='Warning', message='It may take a while, save your file first!',
+                                        button=['Continue', 'Stop'], defaultButton='Stop', cancelButton='Continue')
+            if warnWin == 'Stop':
+                return
+        if detailLvl > 30000:
+            warnWin = pm.confirmDialog(title='Warning', message='Danger ahead, Maya will not response for a long time!',
+                                        button=['Continue', 'Stop'], defaultButton='Stop', cancelButton='Continue')
+            if warnWin == 'Stop':
+                return
+        if detailLvl > 50000:
+            warnWin = pm.confirmDialog(title='Warning', message='Death ahead, praise the sun!',
+                                        button=['Continue', 'Stop'], defaultButton='Stop', cancelButton='Continue')
+            if warnWin == 'Stop':
+                return        
+        
         if i_voxelType.getSelect() == 'custom_voxel':
             if self._importSelected:
                 print pm.importFile(i_meshPath, returnNewNodes=True)
