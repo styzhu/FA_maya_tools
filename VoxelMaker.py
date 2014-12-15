@@ -131,7 +131,6 @@ class VoxelMaker:
         """
         distanceLimit = math.sqrt(self._voxelSize*self._voxelSize*3)
         for p in self._voxelsPosList:
-            # print self._voxelsPosList
             r = self._oriMdl.getClosestPointAndNormal((p[0], p[1], p[2]))
             closestPoint = r[0] + self._oriMdl.getTranslation()
             
@@ -391,14 +390,13 @@ class UI:
         
         if i_voxelType.getSelect() == 'custom_voxel':
             if self._importSelected:
-                print "Import File: "+str(pm.importFile(i_meshPath, returnNewNodes=True))
                 transform = pm.importFile(i_meshPath, returnNewNodes=True)[-2]
                 NormalizeMesh(transform)
             else:
                 transform = g_selectedMeshList[1]
                 NormalizeMesh(transform)
         else:
-            transform = pm.polyCube(w=voxelSize, h=voxelSize, d=voxelSize)
+            transform = pm.polyCube(w=voxelSize, h=voxelSize, d=voxelSize)[0]
         if self._separated == True:
             vm.createShape(False, transform)
         else:
