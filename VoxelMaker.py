@@ -153,12 +153,13 @@ class VoxelMaker:
                 self._voxelsList.append(mesh)
                 # print "Create Voxel @ "+str(p[0])+","+str(p[1])+","+str(p[2])+" "+str(mesh)
                 
+        voxelGrp = pm.group(self._voxelsList, name='VoxelGrp1')
         if i_isGroup ==True:
             if len(self._voxelsList)>1:
-                pm.polyUnite(self._voxelsList, name='V1')
+                pm.polyUnite(voxelGrp, name='V1')
                 pm.polyMergeVertex(distance=0.0)
                 pm.delete(pm.polyInfo(laminaFaces=True))
-            
+
         pm.delete(self._oriMdl)
         
         
