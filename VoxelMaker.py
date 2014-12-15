@@ -1,17 +1,31 @@
+"""
+Voxel Maker Tool for Maya
+version 1.1
+12/15/2014
+
+* latest version can be found at https://github.com/styzhu/FA_maya_tools/blob/master/VoxelMaker.py
+* wiki for this tool: https://github.com/styzhu/FA_maya_tools/wiki/Voxel-Maker-Tool
+
+author: Sty Zhu <zhu@junyuan.me>
+"""
+
 import pymel.core as pm
 import math as math
 import maya.cmds as cmds
 
+
 g_selectedMeshList = list(pm.selected())
 
-""" math helpers """
+""" math helpers start """
 def getLength(i_vector):
+    """return the length of the input vector"""
     x = i_vector[0]
     y = i_vector[1]
     z = i_vector[2]
     return math.sqrt(x*x + y*y + z*z)    
 
 def normalize(i_vector):
+    """return the normalized input vector"""
     x = i_vector[0]
     y = i_vector[1]
     z = i_vector[2]
@@ -20,11 +34,12 @@ def normalize(i_vector):
 
 
 def dotProduct(i_v1, i_v2):
+    """return the result of dot product of input two vectors"""
     return (i_v1[0]*i_v2[0] + i_v1[1]*i_v2[1] + i_v1[2]*i_v2[2])
 
 
-# get greates common divisor
 def getGCD(i_numList):
+    """return greatest common divisor of the input numberlist"""
     output = 0
     for i in range(len(i_numList)-1):
         if i == 0:
@@ -36,6 +51,7 @@ def getGCD(i_numList):
 
 
 def getPairGCD(a, b):
+    """helper for getGCD() return the GCD of two input numbers"""
     tmp = max(a, b)
     b = min(a, b)
     a = tmp
@@ -52,6 +68,7 @@ def getPairGCD(a, b):
 
 """ helper function """
 def NormalizeMesh(mesh):
+    """normalize the input mesh (scale its size to 1, 1, 1 and freeze it)"""
     pm.makeIdentity(mesh, apply = True, translate=True, rotate=True)
     
     meshBBox = mesh.getBoundingBox()
@@ -73,16 +90,18 @@ def NormalizeMesh(mesh):
 
 
 
-
-
-""" main function class """
 class VoxelMaker:
+    """ main function class """
     _voxelSize = 0
     _voxelsPosList = []
     _voxelsList = []
     _oriMdl = pm.nt.Transform()
     
     def __init__(self, i_step):
+        """duplicate the original model, move it to center and get the voxel point list from it
+           Keyword arguments:
+           i_step: decide the number of voxel. the shortest edge contains greatest common divisor * i_step of voxels
+        """
         self._oriMdl = pm.duplicate(g_selectedMeshList[0])[0]
         pm.makeIdentity(self._oriMdl, apply = True, scale = True, rotate=True)
         self._oriMdl.setMatrix((1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0))
@@ -92,7 +111,6 @@ class VoxelMaker:
         
     def __del__(self):
         pass
-        #pm.delete(self._oriMdl)
         
         
     def getBBoxVol(self):
@@ -101,10 +119,16 @@ class VoxelMaker:
         
         
     def getSize(self, *args):
+        """return the size of each voxel"""
         return self._voxelSize
     
     
     def createShape(self, i_isGroup, i_mesh):
+        """create voxels
+           Keyword arguments:
+           i_isGroup: if the result is one object or each voxel seperated
+           i_mesh: the voxel
+        """
         distanceLimit = math.sqrt(self._voxelSize*self._voxelSize*3)
         for p in self._voxelsPosList:
             # print self._voxelsPosList
@@ -124,16 +148,6 @@ class VoxelMaker:
             
             # doc product > 0 means two vectors angle is from 0~90
             if dp < 0:
-                # TODO
-                # i_mesh: nt.Transform(u'pCube1'), nt.PolyCube(u'polyCube1')
-                #print type(i_mesh)
-                #print i_mesh
-                #cube
-                #if type(i_mesh) is 'list':
-                    #mesh = pm.duplicate(i_mesh[0], name='Voxel1')
-                #else:
-                #custom
-                    #mesh = pm.duplicate(i_mesh, name='Voxel1')
                 mesh = pm.duplicate(i_mesh, name='Voxel1')
                 pm.move(p[0], p[1], p[2], mesh, ws=True)
                 self._voxelsList.append(mesh)
@@ -149,6 +163,7 @@ class VoxelMaker:
         
         
     def getBound(self, i_num, i_isMax):
+        """get bound of the profile object"""
         if i_isMax:
             return math.ceil(i_num)
         else:
@@ -176,13 +191,14 @@ class VoxelMaker:
         
         
     def addPoint(self, i_posX, i_posY, i_posZ):
+        """append points at input position to _voxelsPosList"""
         o_point = pm.dt.Point(i_posX+self._voxelSize/2, i_posY+self._voxelSize/2, i_posZ+self._voxelSize/2)
         self._voxelsPosList.append([i_posX+self._voxelSize/2, i_posY+self._voxelSize/2, i_posZ+self._voxelSize/2])        
         
 
 
-""" GUI class """
 class UI:
+    """ GUI class """
     _importFilePath = ''
     _mainWindow = None
     _customVoxelSelected = False
@@ -330,7 +346,6 @@ class UI:
     def getImportFilePath(self, *args):
         filePath = pm.fileDialog2(fileMode = 1)
         if filePath == None:
-            #pm.confirmDialog(title='!!!', button=['OK'], defaultButton='OK', m="Nothing imported")   
             self._importFilePath = filePath[0]
         else:
             self._importFilePath = filePath[0]
