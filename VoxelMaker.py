@@ -308,6 +308,7 @@ class UI:
         
         
     def refresh(self, *args):
+	    global g_selectedMeshList
         g_selectedMeshList = list(pm.selected())
         self.__init__()
         
