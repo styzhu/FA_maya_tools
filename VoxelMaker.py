@@ -1,7 +1,7 @@
 """
 Voxel Maker Tool for Maya
-version 1.1
-12/15/2014
+version 1.2
+12/17/2014
 
 * latest version can be found at https://github.com/styzhu/FA_maya_tools/blob/master/VoxelMaker.py
 * wiki for this tool: https://github.com/styzhu/FA_maya_tools/wiki/Voxel-Maker-Tool
