@@ -205,6 +205,7 @@ class UI:
     _importSelected = False
     _separated = False
     _density = 1
+    _initialWin = True
 
     #UI for this tool
     def __init__(self):
@@ -222,10 +223,14 @@ class UI:
             
         self._mainWindow = pm.window(winName, title=winTitle, menuBar=True)
         
+        if self._initialWin:
+            self.loadSettings()
+            self._initialWin = False
+        
         # menu bar
         pm.menu(label='Edit')
-        pm.menuItem(label='Save Settings')
-        pm.menuItem(label='Reset Settings')
+        pm.menuItem(label='Save Settings', command=self.saveSettings)
+        pm.menuItem(label='Reset Settings', command=self.resetSettings)
         pm.menu(label='Help')
         pm.menuItem(label='Wiki', command=self.goDocLink)    
         pm.menuItem(label='Report Issues', command=self.goBugLink)   
@@ -256,7 +261,7 @@ class UI:
         importRButton = pm.radioButton(label='Import', parent=formLayout_custom_1, enable=self._customVoxelSelected, sl=self._importSelected)
         importField = pm.textFieldButtonGrp( label='Path', text=self._importFilePath, buttonLabel='Find',
                                              buttonCommand=self.getImportFilePath, parent=formLayout_custom_1, 
-                                             enable=self._customVoxelSelected )
+                                             enable=self._customVoxelSelected, editable=False )
         insceneRButton = pm.radioButton(label='In Scene: Select the profile first, the sample object secondly', parent=formLayout_custom_1, enable=self._customVoxelSelected,
                                         changeCommand=self.changeImportSelected, sl=not self._importSelected)
         
@@ -311,6 +316,32 @@ class UI:
         global g_selectedMeshList
         g_selectedMeshList = list(pm.selected())
         self.__init__()
+        
+
+    def saveSettings(self, *args):
+        pm.optionVar['importFilePath'] = self._importFilePath
+        pm.optionVar['customVoxelSelected'] = self._customVoxelSelected
+        pm.optionVar['importSelected'] = self._importSelected
+        pm.optionVar['separated'] = self._separated
+        pm.optionVar['density'] = self._density
+        
+        
+    def resetSettings(self, *args):     
+        pm.optionVar['importFilePath'] = ''
+        pm.optionVar['customVoxelSelected'] = False
+        pm.optionVar['importSelected'] = False
+        pm.optionVar['separated'] = False
+        pm.optionVar['density'] = 1
+        self._initialWin = True
+        self.__init__()
+        
+        
+    def loadSettings(self, *args):
+        self._importFilePath = pm.optionVar['importFilePath']
+        self._customVoxelSelected = pm.optionVar['customVoxelSelected']
+        self._importSelected = pm.optionVar['importSelected']
+        self._separated = pm.optionVar['separated']
+        self._density = pm.optionVar['density']
         
         
     def changeseparated(self, *args):
