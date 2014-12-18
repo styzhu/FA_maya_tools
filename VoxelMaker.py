@@ -403,12 +403,12 @@ class UI:
         detailLvl = vm.getBBoxVol()/(voxelSize**3)
         print "Voxel Size: "+str(voxelSize)+" Current Detail Level: "+str(detailLvl)
         
-        if detailLvl > 10000:
+        if detailLvl > 10000 and detailLvl <= 30000:
             warnWin = pm.confirmDialog(title='Warning', message='It may take a while, save your file first!',
                                         button=['Continue', 'Stop'], defaultButton='Stop', cancelButton='Continue')
             if warnWin == 'Stop':
                 return
-        if detailLvl > 30000:
+        if detailLvl > 30000 and detailLvl <= 50000:
             warnWin = pm.confirmDialog(title='Warning', message='Danger ahead, Maya will not response for a long time!',
                                         button=['Continue', 'Stop'], defaultButton='Stop', cancelButton='Continue')
             if warnWin == 'Stop':
