@@ -1,7 +1,7 @@
 """
 Voxel Maker Tool for Maya
-version 1.2
-12/17/2014
+version 1.3
+12/30/2014
 
 * latest version can be found at https://github.com/styzhu/FA_maya_tools/blob/master/VoxelMaker.py
 * wiki for this tool: https://github.com/styzhu/FA_maya_tools/wiki/Voxel-Maker-Tool
@@ -337,7 +337,7 @@ class UI:
         
         
     def loadSettings(self, *args):
-        if pm.optionVar['importFilePath'] is None:
+        if pm.optionVar['importFilePath'] == None:
             self.resetSettings();
         self._importFilePath = pm.optionVar['importFilePath']
         self._customVoxelSelected = pm.optionVar['customVoxelSelected']
