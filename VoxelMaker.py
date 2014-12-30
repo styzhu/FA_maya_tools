@@ -337,7 +337,7 @@ class UI:
         
         
     def loadSettings(self, *args):
-        if pm.optionVar['importFilePath'] == None:
+        if not pm.optionVar.has_key('importFilePath'):
             self.resetSettings();
         self._importFilePath = pm.optionVar['importFilePath']
         self._customVoxelSelected = pm.optionVar['customVoxelSelected']
